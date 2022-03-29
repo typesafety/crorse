@@ -1,2 +1,6 @@
-# 🪳
-# Does not follow SOLID! DISGUSTING!!
+def main():
+    print('Hello, world')
+
+
+if __name__ == '__main__':
+    main()
