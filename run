@@ -1,0 +1,53 @@
+#!/bin/bash
+
+#
+# Command runner
+#
+
+set -e 
+
+SCRIPT_PATH="$0"
+
+function activate() {
+    source .venv/bin/activate
+}
+
+## Set up the virtual environment
+function setup() {
+    if [ -d .venv ]; then
+        echo ".venv directory already exists."
+    else
+        python3 -m venv .venv 
+        activate
+        pip install -r requirements.txt
+    fi
+}
+
+## Show commands with help text
+function help() {
+    echo "Usage: run COMMAND"
+    PYSCRIPT=$(cat << HEREDOC_END
+import sys, re;
+txt = sys.stdin.read();
+matches = re.findall(r"^## (.*)$\n^function (.*)\(\)", txt, flags=re.MULTILINE);
+print("Commands:\n" + "\n".join(f"\033[1;36m  {name}\033[0;0m\n    {desc}"
+      for desc, name in sorted(matches)))
+HEREDOC_END
+)
+
+cat "$SCRIPT_PATH" | python -c "$PYSCRIPT"
+}
+
+if [ -z "$1" ]; then
+    help
+    exit 1
+fi
+
+FUNCTIONS=`declare -F | sed 's/declare -f //'`
+if `echo "$FUNCTIONS" | grep --word-regexp --quiet "$1"`; then
+    "$1" "${@:2}"  # Slice at 2 so that arguments in functions start at $1
+else
+    echo "Invalid command."
+    help
+    exit 1
+fi
