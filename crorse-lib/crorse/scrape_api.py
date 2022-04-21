@@ -1,11 +1,13 @@
 """API for scraping pages and creating Course objects."""
 
 import logging
+from typing import Optional
 
+from bs4 import BeautifulSoup
 import requests
 from requests import Response
 
-from course import Course, Domain
+from .course import Course, Domain
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +22,17 @@ class CanvasPageNotFound(CanvasError):
 
 class CanvasAPI:
     """Higher-level API for getting information about Canvas courses."""
-    pass
-    # TODO: methods for creating Course objects etc.
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def parse_course(cls, page: str) -> Optional[Course]:
+        """Parse the raw text content of a Canvas page into a Course object.
+
+        Return None if unsuccessful.
+        """
+        pass
 
 
 class CanvasScrapeAPI:

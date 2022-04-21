@@ -6,21 +6,21 @@
 
 set -e 
 
-SCRIPT_PATH="$0"
+SCRIPT_PATH=`readlink --canonicalize $0`
+SCRIPT_DIR=`readlink --canonicalize $(dirname $0)`
+CRORSE_LIB_DIR="$SCRIPT_DIR/crorse-lib"
 
-function activate() {
-    source .venv/bin/activate
-}
+## Start a Python shell with the crorse package and other useful modules loaded
+function crorse_shell() {
+    source "$CRORSE_LIB_DIR/.venv/bin/activate"
+    cd $CRORSE_LIB_DIR && PYTHONSTARTUP=$CRORSE_LIB_DIR/pythonrc.py python 
+} 
 
-## Set up the virtual environment
-function setup() {
-    if [ -d .venv ]; then
-        echo ".venv directory already exists."
-    else
-        python3 -m venv .venv 
-        activate
-        pip install -r requirements.txt
-    fi
+## Run the scraper
+function scrape() {
+    source "$CRORSE_LIB_DIR/.venv/bin/activate"
+    set -x
+    cd "$CRORSE_LIB_DIR" && python -m crorse.extra.scrape
 }
 
 ## Show commands with help text
@@ -31,7 +31,7 @@ import sys, re;
 txt = sys.stdin.read();
 matches = re.findall(r"^## (.*)$\n^function (.*)\(\)", txt, flags=re.MULTILINE);
 print("Commands:\n" + "\n".join(f"\033[1;36m  {name}\033[0;0m\n    {desc}"
-      for desc, name in sorted(matches)))
+      for desc, name in sorted(matches, reverse=True)))
 HEREDOC_END
 )
 
@@ -47,7 +47,7 @@ FUNCTIONS=`declare -F | sed 's/declare -f //'`
 if `echo "$FUNCTIONS" | grep --word-regexp --quiet "$1"`; then
     "$1" "${@:2}"  # Slice at 2 so that arguments in functions start at $1
 else
-    echo "Invalid command."
+    echo "Invalid command: $1"
     help
     exit 1
 fi
