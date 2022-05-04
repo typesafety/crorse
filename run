@@ -10,6 +10,13 @@ SCRIPT_PATH=`readlink --canonicalize $0`
 SCRIPT_DIR=`readlink --canonicalize $(dirname $0)`
 CRORSE_LIB_DIR="$SCRIPT_DIR/crorse-lib"
 
+## Set up venvs in all relevant dirs (will be revamped once we Dockerize).
+function setup_venvs() {
+    cd "$CRORSE_LIB_DIR"
+    python3 -m venv .venv
+    source "$CRORSE_LIB_DIR/.venv/bin/activate"
+    pip3 install -r requirements.txt
+
 ## Start a Python shell with the crorse package and other useful modules loaded
 function crorse_shell() {
     source "$CRORSE_LIB_DIR/.venv/bin/activate"
@@ -35,7 +42,11 @@ print("Commands:\n" + "\n".join(f"\033[1;36m  {name}\033[0;0m\n    {desc}"
 HEREDOC_END
 )
 
-cat "$SCRIPT_PATH" | python -c "$PYSCRIPT"
+if command -v python3 > /dev/null; then
+    cat "$SCRIPT_PATH" | python3 -c "$PYSCRIPT"
+else
+    cat "$SCRIPT_PATH" | python -c "$PYSCRIPT"
+fi
 }
 
 if [ -z "$1" ]; then
